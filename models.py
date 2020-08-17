@@ -25,13 +25,26 @@ class Song():
         query = f'http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key={api_key}&artist={self.artist}&track={self.song}&format=json'
         res = requests.get(query).json()
         try:
-            return [
-                tag['name'].lower()
+            tag_list = [
+                tag['name'].lower().replace('-', '')
                 for tag in res['track']['toptags']['tag']
-
             ]
+            return self.__filter_similar_tags(tag_list)
         except Exception as e:
             return []
 
     def to_str(self):
         return f"{self.song} by {self.artist}"
+
+    def __filter_similar_tags(self, tags: list) -> list:
+        fl = []
+        for t in tags:
+            if t in ['jazzysmoothjazz', 'jazzfunk']:
+                fl.append('jazz')
+            elif len(t.split(' ')) > 1:
+                for w in t.split(' '):
+                    if w in ['vocal', 'jazz', 'pop', 'funk']:
+                        fl.append(w)
+            else:
+                fl.append(t)
+        return fl
